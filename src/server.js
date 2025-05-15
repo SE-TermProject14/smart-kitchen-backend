@@ -1,7 +1,7 @@
 // server.js
 // Main entry point of the Smart Kitchen backend
 
-require('dotenv').config();         // Load environment variables from .env
+require('dotenv').config({ path: '../.env' });         // Load environment variables from .env
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
