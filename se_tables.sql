@@ -12,7 +12,7 @@ create table tb_buy (
 
 create table tb_customer (
   customer_id int auto_increment primary key,        -- primary key (auto-incremented)
-  name varchar(10) not null,                         -- customer name (required)
+  name varchar(10) not null UNIQUE,                         -- customer name (required)
   birthday date,                                     -- customer's date of birth
   sex_cd enum('male', 'female'),                     -- gender: male or female
   `registration` date,            					 -- registration date 

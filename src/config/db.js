@@ -1,21 +1,14 @@
 // db.js
 // MySQL database connection
 
-const mysql = require('mysql2');
+require('dotenv').config({ path: '../.env' });
+const mysql = require('mysql2/promise');
 
-const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '1234',
-  database: 'se_termproject'
+const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
 });
 
-connection.connect((err) => {
-  if (err) {
-    console.error('Failed in connecting:', err);
-  } else {
-    console.log('Successfully connected');
-  }
-});
-
-module.exports = connection;
+module.exports = pool;

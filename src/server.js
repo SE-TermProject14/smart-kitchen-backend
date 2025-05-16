@@ -16,12 +16,12 @@ app.use(express.json());            // Parse JSON request bodies
 
 
 // Route imports
-const foodRoutes = require('./routes/foodRoutes');     
+const buyRoutes = require('./routes/buyRoutes');   
 const authRoutes = require('./routes/authRoutes');    
 const userRoutes = require('./routes/userRoutes');     
 
 // Route mounting
-app.use('/api/foods', foodRoutes);        // e.g. /api/foods
+app.use('/api/buy', buyRoutes);           // e.g. /api/buy/add, /api/update/:buy_id
 app.use('/auth', authRoutes);             // e.g. /auth/signup, /auth/login
 app.use('/users', userRoutes);            // e.g. /users/:userId
 

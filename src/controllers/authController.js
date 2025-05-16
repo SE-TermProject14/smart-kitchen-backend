@@ -3,51 +3,46 @@
 
 const db = require('../config/db');
 const bcrypt = require('bcryptjs'); // Encrypt password
-const jwt = require('jsonwebtoken'); //JWT token
-
+const jwt = require('jsonwebtoken'); // JWT token
 
 // Signup Controller
-exports.signup = (req, res) => {
-
-  // Get new data (req)  
+exports.signup = async (req, res) => {
   const { name, birthday, sex_cd, password } = req.body;
 
-  // Hash the password for security
-  const hashedPassword = bcrypt.hashSync(password, 10);
+  try {
+    // Hash the password for security
+    const hashedPassword = bcrypt.hashSync(password, 10);
 
-  // Use current time as registration date and modified date
-  const registration = new Date();
+    // Use current time as registration date and modified date
+    const registration = new Date();
 
-  // SQL to insert new user into tb_customer (save into DB)
-  const sql = `
-    INSERT INTO tb_customer (name, birthday, sex_cd, password, registration, modified)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `;
+    // SQL to insert new user into tb_customer (save into DB)
+    const sql = `
+      INSERT INTO tb_customer (name, birthday, sex_cd, password, registration, modified)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
 
-  // Execute the query
-  db.query(sql, [name, birthday, sex_cd, hashedPassword, registration, registration], (err, result) => {
-    if (err) {
-      console.error('Signup DB Error:', err);
-      return res.status(500).json({ message: 'Signup failed', error: err });
-    }
+    // Execute the query with await
+    const [result] = await db.query(sql, [name, birthday, sex_cd, hashedPassword, registration, registration]);
 
     // Respond with success message
     res.status(201).json({ message: 'Signup successful' });
-  });
+  } catch (err) {
+    console.error('Signup DB Error:', err);
+    return res.status(500).json({ message: 'Signup failed', error: err.message });
+  }
 };
 
-
 // Login Controller
-exports.login = (req, res) => {
+exports.login = async (req, res) => {
   const { name, password } = req.body;
 
-  // Find user by name
-  const sql = `SELECT * FROM tb_customer WHERE name = ?`;
+  try {
+    // Find user by name
+    const sql = `SELECT * FROM tb_customer WHERE name = ?`;
 
-  db.query(sql, [name], (err, results) => {
-    if (err) {
-      return res.status(500).json({ message: 'Database error' });
-    }
+    // Use await for query execution
+    const [results] = await db.query(sql, [name]);
 
     if (results.length === 0) {
       // No user found
@@ -66,10 +61,13 @@ exports.login = (req, res) => {
     const token = jwt.sign(
       { customer_id: user.customer_id },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' } // Token valid for 1 hour
+      { expiresIn: '1h' } // Token valid for 1h
     );
 
     // Send token to client
     res.json({ message: 'Login successful', token });
-  });
+  } catch (err) {
+    console.error('Login DB Error:', err);
+    return res.status(500).json({ message: 'Login failed', error: err.message });
+  }
 };
