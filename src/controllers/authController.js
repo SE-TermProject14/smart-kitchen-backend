@@ -4,6 +4,7 @@
 const db = require('../config/db');
 const bcrypt = require('bcryptjs'); // Encrypt password
 const jwt = require('jsonwebtoken'); // JWT token
+const authMiddleware = require('../middleware/authMiddleware');
 
 // Signup Controller
 exports.signup = async (req, res) => {
@@ -69,5 +70,29 @@ exports.login = async (req, res) => {
   } catch (err) {
     console.error('Login DB Error:', err);
     return res.status(500).json({ message: 'Login failed', error: err.message });
+  }
+};
+
+// Logout Controller
+exports.logout = (req, res) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(400).json({ message: 'Token is required.' });
+  }
+
+  try {
+    // JWT Verification (Verify that it is a valid token)
+    jwt.verify(token, process.env.JWT_SECRET);
+
+    // Add tokens to blacklist
+    authMiddleware.invalidateToken(token);
+    console.log('Token invalidated:', token);
+
+    res.json({ message: 'Logout successful' });
+  } catch (err) {
+    console.error('Logout Error:', err);
+    res.status(401).json({ message: 'Invalid token.' });
   }
 };
