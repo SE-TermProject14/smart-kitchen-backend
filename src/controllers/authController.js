@@ -82,6 +82,11 @@ exports.logout = (req, res) => {
     return res.status(400).json({ message: 'Token is required.' });
   }
 
+  // Verify that the token is already invalid
+  if (authMiddleware.isTokenInvalidated(token)) {
+    return res.status(401).json({ message: 'Token is already invalidated.' });
+  }
+
   try {
     // JWT Verification (Verify that it is a valid token)
     jwt.verify(token, process.env.JWT_SECRET);

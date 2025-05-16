@@ -31,3 +31,8 @@ exports.verifyToken = (req, res, next) => {
 exports.invalidateToken = (token) => {
   blacklist.push(token);
 };
+
+// Check if Token is already in blacklist
+exports.isTokenInvalidated = (token) => {
+  return blacklist.includes(token);
+};
