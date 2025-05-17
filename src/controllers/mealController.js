@@ -114,27 +114,25 @@ exports.searchFood = async (req, res) => {
 
 // Add Meal-Food Mapping
 exports.addMealFood = async (req, res) => {
-  const { meal_id, food_id, quantity, consumed_date } = req.body;
+  const { meal_id, food_id, quantity } = req.body;
   const customer_id = req.user.customer_id;
 
-  if (!meal_id || !food_id || !quantity || !consumed_date) {
+  if (!meal_id || !food_id || !quantity) {
     return res.status(400).json({ error: 'Required fields are missing.' });
   }
 
   try {
     // 1. meal_id가 현재 사용자의 것인지 확인
     const [mealData] = await db.query(
-      `SELECT customer_id FROM tb_meal WHERE meal_id = ?`,
-      [meal_id]
+      `SELECT meal_date FROM tb_meal WHERE meal_id = ? AND customer_id = ?`,
+      [meal_id, customer_id]
     );
 
     if (mealData.length === 0) {
-      return res.status(404).json({ error: 'Meal not found.' });
+      return res.status(404).json({ error: 'Meal not found or unauthorized access.' });
     }
 
-    if (mealData[0].customer_id !== customer_id) {
-      return res.status(403).json({ error: 'You are not authorized to add food to this meal.' });
-    }
+    const meal_date = mealData[0].meal_date;
 
     // 2. food_id를 기반으로 영양 성분 정보 조회
     const [foodData] = await db.query(
@@ -161,13 +159,12 @@ exports.addMealFood = async (req, res) => {
         food_id, 
         customer_id, 
         quantity, 
-        consumed_date, 
         calorie_total, 
         carb_total, 
         protein_total, 
         fat_total
       ) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const [result] = await db.query(query, [
@@ -175,7 +172,6 @@ exports.addMealFood = async (req, res) => {
       food_id, 
       customer_id, 
       quantity, 
-      consumed_date, 
       calorie_total, 
       carb_total, 
       protein_total, 
@@ -233,29 +229,28 @@ exports.getConsumedFoods = async (req, res) => {
     SELECT 
       f.food_name, 
       mf.quantity, 
-      DATE_FORMAT(mf.consumed_date, '%Y-%m-%d') AS consumed_date, 
+      DATE_FORMAT(m.meal_date, '%Y-%m-%d') AS consumed_date,
       mf.calorie_total, 
       mf.carb_total, 
       mf.protein_total, 
       mf.fat_total
     FROM tb_meal_food mf
+    JOIN tb_meal m ON mf.meal_id = m.meal_id
     JOIN tb_food f ON mf.food_id = f.food_id
     WHERE mf.customer_id = ?
   `;
 
   const params = [customer_id];
 
-  if (date) {
-    // 특정 날짜 조회
-    query += ` AND mf.consumed_date = ?`;
+  if (date) {    // 특정 날짜 조회
+    query += ` AND m.meal_date = ?`;
     params.push(date);
-  } else if (start_date && end_date) {
-    // 날짜 범위 조회
-    query += ` AND mf.consumed_date BETWEEN ? AND ?`;
+  } else if (start_date && end_date) {  // 특정 기간 조회
+    query += ` AND m.meal_date BETWEEN ? AND ?`;
     params.push(start_date, end_date);
   }
 
-  query += ` ORDER BY mf.consumed_date DESC`;
+  query += ` ORDER BY m.meal_date DESC`;
 
   try {
     const [rows] = await db.query(query, params);
@@ -266,3 +261,39 @@ exports.getConsumedFoods = async (req, res) => {
   }
 };
 
+
+// Get Total Nutritional Info for a Specific Date
+exports.getTotalNutritionByDate = async (req, res) => {
+  const { date } = req.query;
+  const customer_id = req.user.customer_id;
+
+  if (!date) {
+    return res.status(400).json({ error: 'Date parameter is required.' });
+  }
+
+  const query = `
+    SELECT 
+      DATE_FORMAT(m.meal_date, '%Y-%m-%d') AS consumed_date,
+      SUM(mf.calorie_total) AS total_calorie,
+      SUM(mf.carb_total) AS total_carb,
+      SUM(mf.protein_total) AS total_protein,
+      SUM(mf.fat_total) AS total_fat
+    FROM tb_meal_food mf
+    JOIN tb_meal m ON mf.meal_id = m.meal_id
+    WHERE mf.customer_id = ? AND m.meal_date = ?
+    GROUP BY m.meal_date
+  `;
+
+  try {
+    const [rows] = await db.query(query, [customer_id, date]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'No consumption records found for the specified date.' });
+    }
+
+    res.json(rows[0]);
+  } catch (error) {
+    console.error('Error in getTotalNutritionByDate:', error);
+    res.status(500).json({ error: 'An error occurred while calculating total nutrition for the specified date.' });
+  }
+};

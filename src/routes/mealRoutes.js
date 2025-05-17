@@ -24,4 +24,8 @@ router.delete('/delete-food/:meal_food_id', authMiddleware.verifyToken, mealCont
 // Get Consumed Foods (with optional date and date range)
 router.get('/consumed', authMiddleware.verifyToken, mealController.getConsumedFoods);
 
+// Get Total Nutrition by Specific Date
+router.get('/nutrition/date', authMiddleware.verifyToken, mealController.getTotalNutritionByDate);
+
+
 module.exports = router;

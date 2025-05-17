@@ -50,9 +50,8 @@ CREATE TABLE tb_meal_food (
   meal_food_id INT AUTO_INCREMENT PRIMARY KEY,  -- unique record for meal-food relation
   meal_id INT NOT NULL,                         -- foreign key to tb_meal
   food_id INT NOT NULL,                         -- foreign key to tb_food
-  customer_id INT NOT NULL,                    -- foreign key to tb_customer
+  customer_id INT NOT NULL,                     -- foreign key to tb_customer
   quantity INT NOT NULL,                        -- 섭취량 (g 또는 ml)
-  consumed_date DATE NOT NULL,                  -- 섭취 날짜
   calorie_total DECIMAL(6, 2),                  -- 총 칼로리
   carb_total DECIMAL(6, 2),                     -- 총 탄수화물
   protein_total DECIMAL(6, 2),                  -- 총 단백질
