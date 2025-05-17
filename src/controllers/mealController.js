@@ -53,6 +53,37 @@ exports.updateMeal = async (req, res) => {
   }
 };
 
+// Delete Meal Record
+exports.deleteMeal = async (req, res) => {
+  const { meal_id } = req.params;
+  const customer_id = req.user.customer_id;
+
+  try {
+    // 해당 meal_id가 현재 사용자의 것인지 확인
+    const [mealData] = await db.query(
+      `SELECT customer_id FROM tb_meal WHERE meal_id = ?`,
+      [meal_id]
+    );
+
+    if (mealData.length === 0) {
+      return res.status(404).json({ error: 'Meal not found.' });
+    }
+
+    if (mealData[0].customer_id !== customer_id) {
+      return res.status(403).json({ error: 'You are not authorized to delete this meal.' });
+    }
+
+    // 삭제 쿼리
+    const query = `DELETE FROM tb_meal WHERE meal_id = ? AND customer_id = ?`;
+    await db.query(query, [meal_id, customer_id]);
+
+    res.json({ message: 'Meal record successfully deleted.' });
+  } catch (error) {
+    console.error('Error in deleteMeal:', error);
+    res.status(500).json({ error: 'An error occurred while deleting the meal record.' });
+  }
+};
+
 // Search Food in tb_food
 exports.searchFood = async (req, res) => {
   const { keyword } = req.query;
@@ -162,6 +193,36 @@ exports.addMealFood = async (req, res) => {
   }
 };
 
+// Delete Meal-Food Mapping
+exports.deleteMealFood = async (req, res) => {
+  const { meal_food_id } = req.params;
+  const customer_id = req.user.customer_id;
+
+  try {
+    // 해당 meal_food_id가 현재 사용자의 것인지 확인
+    const [mealFoodData] = await db.query(
+      `SELECT customer_id FROM tb_meal_food WHERE meal_food_id = ?`,
+      [meal_food_id]
+    );
+
+    if (mealFoodData.length === 0) {
+      return res.status(404).json({ error: 'Meal-Food record not found.' });
+    }
+
+    if (mealFoodData[0].customer_id !== customer_id) {
+      return res.status(403).json({ error: 'You are not authorized to delete this meal-food record.' });
+    }
+
+    // 삭제 쿼리
+    const query = `DELETE FROM tb_meal_food WHERE meal_food_id = ? AND customer_id = ?`;
+    await db.query(query, [meal_food_id, customer_id]);
+
+    res.json({ message: 'Meal-Food record successfully deleted.' });
+  } catch (error) {
+    console.error('Error in deleteMealFood:', error);
+    res.status(500).json({ error: 'An error occurred while deleting the meal-food record.' });
+  }
+};
 
 // Get Consumed Foods and Nutritional Info
 exports.getConsumedFoods = async (req, res) => {
@@ -204,3 +265,4 @@ exports.getConsumedFoods = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while fetching consumed foods.' });
   }
 };
+

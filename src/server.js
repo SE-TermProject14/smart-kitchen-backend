@@ -22,12 +22,13 @@ const userRoutes = require('./routes/userRoutes');
 const mealRoutes = require('./routes/mealRoutes');    
 
 // Route mounting
-app.use('/api/buy', buyRoutes);           // e.g. /api/buy/add, /api/update/:buy_id
+app.use('/api/buy', buyRoutes);           // e.g. /api/buy/add, /api/buy/update/:buy_id, /api/buy/delete/:buy_id
 app.use('/auth', authRoutes);             // e.g. /auth/signup, /auth/login, /auth/logout
 app.use('/users', userRoutes);            // e.g. /users/:userId
 app.use('/api/meals', mealRoutes);        // e.g. /api/meals/add, /api/meals/update/:meal_id
+                                          //      /api/meals/delete/:meal_id
                                           //      /api/meals/search?keyword=김밥
-                                          //      /api/meals/add-food
+                                          //      /api/meals/add-food, /api/meals/delete-food/:meal_food_id
                                           //      /api/meals/consumed
                                           //      /api/meals/consumed?date=2025-05-20
                                           //      /api/meals/consumed?start_date=2025-05-08&end_date=2025-05-20

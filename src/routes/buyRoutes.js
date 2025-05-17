@@ -11,5 +11,6 @@ const authMiddleware = require('../middleware/authMiddleware');
 // Apply the middleware to routes
 router.post('/add', authMiddleware.verifyToken, buyController.addBuy);
 router.put('/update/:buy_id', authMiddleware.verifyToken, buyController.updateBuy);
+router.delete('/delete/:buy_id', authMiddleware.verifyToken, buyController.deleteBuy);
 
 module.exports = router;

@@ -62,3 +62,34 @@ exports.updateBuy = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while updating purchase information.' });
   }
 };
+
+// Delete Purchase Record
+exports.deleteBuy = async (req, res) => {
+  const { buy_id } = req.params;
+  const customer_id = req.user.customer_id;
+
+  try {
+    // 해당 buy_id가 현재 사용자의 것인지 확인
+    const [buyData] = await db.query(
+      `SELECT customer_id FROM tb_buy WHERE buy_id = ?`,
+      [buy_id]
+    );
+
+    if (buyData.length === 0) {
+      return res.status(404).json({ error: 'Purchase record not found.' });
+    }
+
+    if (buyData[0].customer_id !== customer_id) {
+      return res.status(403).json({ error: 'You are not authorized to delete this purchase record.' });
+    }
+
+    // 삭제 쿼리
+    const query = `DELETE FROM tb_buy WHERE buy_id = ? AND customer_id = ?`;
+    await db.query(query, [buy_id, customer_id]);
+
+    res.json({ message: 'Purchase record successfully deleted.' });
+  } catch (error) {
+    console.error('Error in deleteBuy:', error);
+    res.status(500).json({ error: 'An error occurred while deleting the purchase record.' });
+  }
+};
