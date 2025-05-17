@@ -18,12 +18,19 @@ app.use(express.json());            // Parse JSON request bodies
 // Route imports
 const buyRoutes = require('./routes/buyRoutes');   
 const authRoutes = require('./routes/authRoutes');    
-const userRoutes = require('./routes/userRoutes');     
+const userRoutes = require('./routes/userRoutes'); 
+const mealRoutes = require('./routes/mealRoutes');    
 
 // Route mounting
 app.use('/api/buy', buyRoutes);           // e.g. /api/buy/add, /api/update/:buy_id
-app.use('/auth', authRoutes);             // e.g. /auth/signup, /auth/login
+app.use('/auth', authRoutes);             // e.g. /auth/signup, /auth/login, /auth/logout
 app.use('/users', userRoutes);            // e.g. /users/:userId
+app.use('/api/meals', mealRoutes);        // e.g. /api/meals/add, /api/meals/update/:meal_id
+                                          //      /api/meals/search?keyword=김밥
+                                          //      /api/meals/add-food
+                                          //      /api/meals/consumed
+                                          //      /api/meals/consumed?date=2025-05-20
+                                          //      /api/meals/consumed?start_date=2025-05-08&end_date=2025-05-20
 
 // Test route
 app.get('/', (req, res) => {

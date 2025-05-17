@@ -32,15 +32,36 @@ create table tb_meal (
   meal_id int auto_increment primary key,             -- unique meal ID (auto-incremented)
   customer_id int not null,                           -- foreign key to tb_customer
   meal_date date not null,                            -- date of the meal
-  meal_cd varchar(10) not null                        -- meal code (e.g., breakfast, lunch, dinner)
+  meal_cd ENUM('breakfast', 'lunch', 'dinner') NOT NULL                       -- meal code (e.g., breakfast, lunch, dinner)
 );
 
-create table tb_meal_food (
-  meal_food_id int auto_increment primary key,        -- unique record for meal-food relation
-  meal_id int not null,                               -- foreign key to tb_meal
-  food_id int not null                                -- foreign key to food table
+CREATE TABLE tb_food (
+  food_id INT AUTO_INCREMENT PRIMARY KEY,
+  food_code VARCHAR(50) NOT NULL UNIQUE,  -- API에서 제공하는 식품 코드 (UNIQUE)
+  food_name VARCHAR(100) NOT NULL,        -- 식품명
+  quantity INT NOT NULL DEFAULT 100,      -- 100g 또는 100ml 기준
+  calorie DECIMAL(6, 2),                  -- 소수점 허용
+  carb DECIMAL(6, 2),
+  protein DECIMAL(6, 2),
+  fat DECIMAL(6, 2)
 );
- 
+
+CREATE TABLE tb_meal_food (
+  meal_food_id INT AUTO_INCREMENT PRIMARY KEY,  -- unique record for meal-food relation
+  meal_id INT NOT NULL,                         -- foreign key to tb_meal
+  food_id INT NOT NULL,                         -- foreign key to tb_food
+  customer_id INT NOT NULL,                    -- foreign key to tb_customer
+  quantity INT NOT NULL,                        -- 섭취량 (g 또는 ml)
+  consumed_date DATE NOT NULL,                  -- 섭취 날짜
+  calorie_total DECIMAL(6, 2),                  -- 총 칼로리
+  carb_total DECIMAL(6, 2),                     -- 총 탄수화물
+  protein_total DECIMAL(6, 2),                  -- 총 단백질
+  fat_total DECIMAL(6, 2),                      -- 총 지방
+  FOREIGN KEY (meal_id) REFERENCES tb_meal(meal_id) ON DELETE CASCADE,
+  FOREIGN KEY (food_id) REFERENCES tb_food(food_id) ON DELETE CASCADE,
+  FOREIGN KEY (customer_id) REFERENCES tb_customer(customer_id) ON DELETE CASCADE
+);
+
 alter table tb_buy
   add constraint
   foreign key (customer_id)
@@ -51,16 +72,7 @@ alter table tb_meal
   foreign key (customer_id)
   references tb_customer(customer_id);
 
-alter table tb_meal_food
-  add constraint
-  foreign key (meal_id)
-  references tb_meal(meal_id);
-
-
 alter table tb_cust_health
   add constraint
   foreign key (customer_id)
   references tb_customer(customer_id);
-
-
-

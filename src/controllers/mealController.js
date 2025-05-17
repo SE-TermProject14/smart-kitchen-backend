@@ -1,0 +1,206 @@
+const db = require('../config/db');
+
+// Add Meal Record
+exports.addMeal = async (req, res) => {
+  const { meal_date, meal_cd } = req.body;
+  const customer_id = req.user.customer_id;
+
+  if (!meal_date || !meal_cd) {
+    return res.status(400).json({ error: 'Required fields are missing.' });
+  }
+
+  try {
+    const query = `
+      INSERT INTO tb_meal (customer_id, meal_date, meal_cd)
+      VALUES (?, ?, ?)
+    `;
+    const values = [customer_id, meal_date, meal_cd];
+    const [result] = await db.query(query, values);
+
+    res.status(201).json({ message: 'Meal record successfully added.', meal_id: result.insertId });
+  } catch (error) {
+    console.error('Error in addMeal:', error);
+    res.status(500).json({ error: 'An error occurred while adding the meal record.' });
+  }
+};
+
+// Update Meal Record
+exports.updateMeal = async (req, res) => {
+  const { meal_id } = req.params;
+  const { meal_date, meal_cd } = req.body;
+  const customer_id = req.user.customer_id;
+
+  if (!meal_date || !meal_cd) {
+    return res.status(400).json({ error: 'Required fields are missing.' });
+  }
+
+  try {
+    const query = `
+      UPDATE tb_meal 
+      SET meal_date = ?, meal_cd = ? 
+      WHERE meal_id = ? AND customer_id = ?
+    `;
+    const [result] = await db.query(query, [meal_date, meal_cd, meal_id, customer_id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Meal record not found.' });
+    }
+
+    res.json({ message: 'Meal record successfully updated.' });
+  } catch (error) {
+    console.error('Error in updateMeal:', error);
+    res.status(500).json({ error: 'An error occurred while updating the meal record.' });
+  }
+};
+
+// Search Food in tb_food
+exports.searchFood = async (req, res) => {
+  const { keyword } = req.query;
+
+  try {
+    const query = `
+      SELECT 
+        food_id, 
+        food_name, 
+        CONCAT(quantity, '(gORml)') AS quantity, 
+        calorie, 
+        carb, 
+        protein, 
+        fat 
+      FROM tb_food
+      WHERE food_name LIKE ?
+      LIMIT 10
+    `;
+    const [rows] = await db.query(query, [`%${keyword}%`]);
+
+    res.json(rows);
+  } catch (error) {
+    console.error('Error in searchFood:', error);
+    res.status(500).json({ error: 'An error occurred while searching for food.' });
+  }
+};
+
+
+// Add Meal-Food Mapping
+exports.addMealFood = async (req, res) => {
+  const { meal_id, food_id, quantity, consumed_date } = req.body;
+  const customer_id = req.user.customer_id;
+
+  if (!meal_id || !food_id || !quantity || !consumed_date) {
+    return res.status(400).json({ error: 'Required fields are missing.' });
+  }
+
+  try {
+    // 1. meal_id가 현재 사용자의 것인지 확인
+    const [mealData] = await db.query(
+      `SELECT customer_id FROM tb_meal WHERE meal_id = ?`,
+      [meal_id]
+    );
+
+    if (mealData.length === 0) {
+      return res.status(404).json({ error: 'Meal not found.' });
+    }
+
+    if (mealData[0].customer_id !== customer_id) {
+      return res.status(403).json({ error: 'You are not authorized to add food to this meal.' });
+    }
+
+    // 2. food_id를 기반으로 영양 성분 정보 조회
+    const [foodData] = await db.query(
+      `SELECT calorie, carb, protein, fat FROM tb_food WHERE food_id = ?`,
+      [food_id]
+    );
+
+    if (foodData.length === 0) {
+      return res.status(404).json({ error: 'Food not found.' });
+    }
+
+    const { calorie, carb, protein, fat } = foodData[0];
+
+    // 각 영양 성분의 총합 계산
+    const calorie_total = (calorie * quantity) / 100;
+    const carb_total = (carb * quantity) / 100;
+    const protein_total = (protein * quantity) / 100;
+    const fat_total = (fat * quantity) / 100;
+
+    // 3. tb_meal_food에 데이터 삽입
+    const query = `
+      INSERT INTO tb_meal_food (
+        meal_id, 
+        food_id, 
+        customer_id, 
+        quantity, 
+        consumed_date, 
+        calorie_total, 
+        carb_total, 
+        protein_total, 
+        fat_total
+      ) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const [result] = await db.query(query, [
+      meal_id, 
+      food_id, 
+      customer_id, 
+      quantity, 
+      consumed_date, 
+      calorie_total, 
+      carb_total, 
+      protein_total, 
+      fat_total
+    ]);
+
+    res.status(201).json({ 
+      message: 'Meal-Food mapping successfully added.', 
+      meal_food_id: result.insertId 
+    });
+
+  } catch (error) {
+    console.error('Error in addMealFood:', error);
+    res.status(500).json({ error: 'An error occurred while adding the meal-food mapping.' });
+  }
+};
+
+
+// Get Consumed Foods and Nutritional Info
+exports.getConsumedFoods = async (req, res) => {
+  const { start_date, end_date, date } = req.query;
+  const customer_id = req.user.customer_id;
+
+  let query = `
+    SELECT 
+      f.food_name, 
+      mf.quantity, 
+      mf.consumed_date, 
+      mf.calorie_total, 
+      mf.carb_total, 
+      mf.protein_total, 
+      mf.fat_total
+    FROM tb_meal_food mf
+    JOIN tb_food f ON mf.food_id = f.food_id
+    WHERE mf.customer_id = ?
+  `;
+
+  const params = [customer_id];
+
+  if (date) {
+    // 특정 날짜 조회
+    query += ` AND mf.consumed_date = ?`;
+    params.push(date);
+  } else if (start_date && end_date) {
+    // 날짜 범위 조회
+    query += ` AND mf.consumed_date BETWEEN ? AND ?`;
+    params.push(start_date, end_date);
+  }
+
+  query += ` ORDER BY mf.consumed_date DESC`;
+
+  try {
+    const [rows] = await db.query(query, params);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error in getConsumedFoods:', error);
+    res.status(500).json({ error: 'An error occurred while fetching consumed foods.' });
+  }
+};
