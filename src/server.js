@@ -23,7 +23,7 @@ const mealRoutes = require('./routes/mealRoutes');
 
 // Route mounting
 app.use('/auth', authRoutes);             // e.g. /auth/signup, /auth/login, /auth/logout
-app.use('/users', userRoutes);            // e.g. /users/:userId
+app.use('/api/users', userRoutes);            // e.g. /users/:userId
 app.use('/api/buy', buyRoutes);           // e.g. /api/buy/add, /api/buy/update/:buy_id, /api/buy/delete/:buy_id
                                           //      /api/buy/all, /api/buy/near-expiry
 app.use('/api/meals', mealRoutes);        // e.g. /api/meals/add, /api/meals/update/:meal_id
