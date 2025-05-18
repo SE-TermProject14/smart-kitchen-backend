@@ -1,9 +1,13 @@
+// userRoutes.js
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware'); // JWT 인증 미들웨어
-const userController = require('../controllers/userController');
 
-// Get logged-in user information
+// Import Controllers
+const userController = require('../controllers/userController');
+const authMiddleware = require('../middleware/authMiddleware');
+
+// Apply the middleware to routes
 router.get('/me', authMiddleware.verifyToken, userController.getUserInfo);
 
+// Export the router to be used in server.js
 module.exports = router;

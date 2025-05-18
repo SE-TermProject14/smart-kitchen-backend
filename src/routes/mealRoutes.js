@@ -1,31 +1,20 @@
+// mealRoutes.js
 const express = require('express');
 const router = express.Router();
+
+// Import Controllers
 const mealController = require('../controllers/mealController');
 const authMiddleware = require('../middleware/authMiddleware');
 
-// Add Meal
+// Apply the middleware to routes
 router.post('/add', authMiddleware.verifyToken, mealController.addMeal);
-
-// Update Meal
 router.put('/update/:meal_id', authMiddleware.verifyToken, mealController.updateMeal);
-
-// Delete Meal
 router.delete('/delete/:meal_id', authMiddleware.verifyToken, mealController.deleteMeal);
-
-// Search Food
 router.get('/search', authMiddleware.verifyToken, mealController.searchFood);
-
-// Add Meal-Food Mapping
 router.post('/add-food', authMiddleware.verifyToken, mealController.addMealFood);
-
-// Delete Meal-Food Mapping
 router.delete('/delete-food/:meal_food_id', authMiddleware.verifyToken, mealController.deleteMealFood);
-
-// Get Consumed Foods (with optional date and date range)
 router.get('/consumed', authMiddleware.verifyToken, mealController.getConsumedFoods);
-
-// Get Total Nutrition by Specific Date
 router.get('/nutrition/date', authMiddleware.verifyToken, mealController.getTotalNutritionByDate);
 
-
+// Export the router to be used in server.js
 module.exports = router;

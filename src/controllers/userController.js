@@ -1,11 +1,9 @@
 // userController.js
-// User-related actions (e.g., get user information)
-
-const db = require('../config/db');  // Import MySQL connection
+const db = require('../config/db');
 
 // Get logged-in user information
 exports.getUserInfo = async (req, res) => {
-  const customer_id = req.user.customer_id; // 현재 로그인된 사용자의 ID
+  const customer_id = req.user.customer_id; // ID of the currently logged-in user
 
   const sql = `
     SELECT name, birthday, sex_cd, registration, modified
@@ -22,7 +20,7 @@ exports.getUserInfo = async (req, res) => {
 
     const user = results[0];
 
-    // 날짜 형식을 YYYY-MM-DD로 변환
+    // Convert Date Format to YYYY-MM-DD
     user.birthday = new Date(user.birthday).toISOString().split('T')[0];
     user.registration = new Date(user.registration).toISOString().split('T')[0];
     user.modified = new Date(user.modified).toISOString().split('T')[0];

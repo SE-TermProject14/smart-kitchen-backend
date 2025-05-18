@@ -1,3 +1,4 @@
+// buyController.js
 const db = require('../config/db');
 
 // Add Purchase Record

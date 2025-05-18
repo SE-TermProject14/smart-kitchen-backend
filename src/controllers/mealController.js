@@ -1,3 +1,4 @@
+// mealController.js
 const db = require('../config/db');
 
 // Add Meal Record
@@ -59,7 +60,7 @@ exports.deleteMeal = async (req, res) => {
   const customer_id = req.user.customer_id;
 
   try {
-    // 해당 meal_id가 현재 사용자의 것인지 확인
+    // Verify that the mean_id belongs to the current user
     const [mealData] = await db.query(
       `SELECT customer_id FROM tb_meal WHERE meal_id = ?`,
       [meal_id]
@@ -73,7 +74,7 @@ exports.deleteMeal = async (req, res) => {
       return res.status(403).json({ error: 'You are not authorized to delete this meal.' });
     }
 
-    // 삭제 쿼리
+    // Delete Query
     const query = `DELETE FROM tb_meal WHERE meal_id = ? AND customer_id = ?`;
     await db.query(query, [meal_id, customer_id]);
 
@@ -122,7 +123,7 @@ exports.addMealFood = async (req, res) => {
   }
 
   try {
-    // 1. meal_id가 현재 사용자의 것인지 확인
+    // 1. Verify that mean_id belongs to the current user
     const [mealData] = await db.query(
       `SELECT meal_date FROM tb_meal WHERE meal_id = ? AND customer_id = ?`,
       [meal_id, customer_id]
@@ -134,7 +135,7 @@ exports.addMealFood = async (req, res) => {
 
     const meal_date = mealData[0].meal_date;
 
-    // 2. food_id를 기반으로 영양 성분 정보 조회
+    // 2. nutritional information based on food_id
     const [foodData] = await db.query(
       `SELECT calorie, carb, protein, fat FROM tb_food WHERE food_id = ?`,
       [food_id]
@@ -146,13 +147,13 @@ exports.addMealFood = async (req, res) => {
 
     const { calorie, carb, protein, fat } = foodData[0];
 
-    // 각 영양 성분의 총합 계산
+    // Total of each nutrient ingredient
     const calorie_total = (calorie * quantity) / 100;
     const carb_total = (carb * quantity) / 100;
     const protein_total = (protein * quantity) / 100;
     const fat_total = (fat * quantity) / 100;
 
-    // 3. tb_meal_food에 데이터 삽입
+    // 3. Insert data into tb_meal_food
     const query = `
       INSERT INTO tb_meal_food (
         meal_id, 
@@ -195,7 +196,6 @@ exports.deleteMealFood = async (req, res) => {
   const customer_id = req.user.customer_id;
 
   try {
-    // 해당 meal_food_id가 현재 사용자의 것인지 확인
     const [mealFoodData] = await db.query(
       `SELECT customer_id FROM tb_meal_food WHERE meal_food_id = ?`,
       [meal_food_id]
@@ -209,7 +209,6 @@ exports.deleteMealFood = async (req, res) => {
       return res.status(403).json({ error: 'You are not authorized to delete this meal-food record.' });
     }
 
-    // 삭제 쿼리
     const query = `DELETE FROM tb_meal_food WHERE meal_food_id = ? AND customer_id = ?`;
     await db.query(query, [meal_food_id, customer_id]);
 
@@ -242,10 +241,10 @@ exports.getConsumedFoods = async (req, res) => {
 
   const params = [customer_id];
 
-  if (date) {    // 특정 날짜 조회
+  if (date) {    // Look up a specific date
     query += ` AND m.meal_date = ?`;
     params.push(date);
-  } else if (start_date && end_date) {  // 특정 기간 조회
+  } else if (start_date && end_date) {  // Look up for a specific period of time
     query += ` AND m.meal_date BETWEEN ? AND ?`;
     params.push(start_date, end_date);
   }

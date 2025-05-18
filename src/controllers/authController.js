@@ -1,6 +1,4 @@
 // authController.js
-// User authentication: granting user access - signup and login
-
 const db = require('../config/db');
 const bcrypt = require('bcryptjs'); // Encrypt password
 const jwt = require('jsonwebtoken'); // JWT token

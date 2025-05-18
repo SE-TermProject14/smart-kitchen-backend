@@ -1,7 +1,7 @@
 // server.js
 // Main entry point of the Smart Kitchen backend
 
-require('dotenv').config({ path: '../.env' });         // Load environment variables from .env
+require('dotenv').config({ path: '../.env' }); // Load environment variables from .env
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -23,7 +23,7 @@ const mealRoutes = require('./routes/mealRoutes');
 
 // Route mounting
 app.use('/auth', authRoutes);             // e.g. /auth/signup, /auth/login, /auth/logout
-app.use('/api/users', userRoutes);            // e.g. /users/:userId
+app.use('/api/users', userRoutes);        // e.g. /api/users/me
 app.use('/api/buy', buyRoutes);           // e.g. /api/buy/add, /api/buy/update/:buy_id, /api/buy/delete/:buy_id
                                           //      /api/buy/all, /api/buy/near-expiry
 app.use('/api/meals', mealRoutes);        // e.g. /api/meals/add, /api/meals/update/:meal_id

@@ -1,6 +1,4 @@
 // buyRoutes.js
-// Routes for handling purchase-related operations (add and update purchase information)
-
 const express = require('express');
 const router = express.Router();
 
@@ -15,4 +13,5 @@ router.delete('/delete/:buy_id', authMiddleware.verifyToken, buyController.delet
 router.get('/near-expiry', authMiddleware.verifyToken, buyController.getNearExpiryProducts);
 router.get('/all', authMiddleware.verifyToken, buyController.getAllBuys);
 
+// Export the router to be used in server.js
 module.exports = router;
