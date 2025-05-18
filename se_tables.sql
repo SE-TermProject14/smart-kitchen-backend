@@ -1,15 +1,6 @@
 create database se_termproject;
 use se_termproject;
 
-create table tb_buy (
-	buy_id int auto_increment primary key, -- pk
-    customer_id int not null,  -- fk for customer table
-    food_id int not null, -- food id
-    buy_date date not null, -- purchase date
-    buy_cnt int not null, -- number of purchases
-    expire_date date -- food expiration date
-);
-
 create table tb_customer (
   customer_id int auto_increment primary key,        -- primary key (auto-incremented)
   name varchar(10) not null UNIQUE,                         -- customer name (required)
@@ -20,19 +11,22 @@ create table tb_customer (
   password varchar(100) not null					 -- password
 );
 
-create table tb_cust_health (
-  cust_health_id int auto_increment primary key,      -- unique health record ID 
-  customer_id int not null,                           -- foreign key to tb_customer
-  health_cd varchar(10) not null,                     -- health code (e.g., bmi, fat)
-  health_value varchar(45)                            -- value of the health metric
+create table tb_buy (
+	buy_id int auto_increment primary key, -- pk
+  customer_id int not null,  -- fk for customer table
+  buy_name VARCHAR(100) NOT NULL, -- food name
+  buy_date date not null, -- purchase date
+  buy_cnt int not null, -- number of purchases
+  expire_date date -- food expiration date
+  FOREIGN KEY (customer_id) REFERENCES tb_customer(customer_id) ON DELETE CASCADE
 );
-
 
 create table tb_meal (
   meal_id int auto_increment primary key,             -- unique meal ID (auto-incremented)
   customer_id int not null,                           -- foreign key to tb_customer
   meal_date date not null,                            -- date of the meal
-  meal_cd ENUM('breakfast', 'lunch', 'dinner') NOT NULL                       -- meal code (e.g., breakfast, lunch, dinner)
+  meal_cd ENUM('breakfast', 'lunch', 'dinner') NOT NULL,  -- meal code (e.g., breakfast, lunch, dinner)
+  FOREIGN KEY (customer_id) REFERENCES tb_customer(customer_id) ON DELETE CASCADE
 );
 
 CREATE TABLE tb_food (
@@ -60,18 +54,3 @@ CREATE TABLE tb_meal_food (
   FOREIGN KEY (food_id) REFERENCES tb_food(food_id) ON DELETE CASCADE,
   FOREIGN KEY (customer_id) REFERENCES tb_customer(customer_id) ON DELETE CASCADE
 );
-
-alter table tb_buy
-  add constraint
-  foreign key (customer_id)
-  references tb_customer(customer_id);
-
-alter table tb_meal
-  add constraint 
-  foreign key (customer_id)
-  references tb_customer(customer_id);
-
-alter table tb_cust_health
-  add constraint
-  foreign key (customer_id)
-  references tb_customer(customer_id);

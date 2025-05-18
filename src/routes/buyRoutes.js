@@ -12,5 +12,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 router.post('/add', authMiddleware.verifyToken, buyController.addBuy);
 router.put('/update/:buy_id', authMiddleware.verifyToken, buyController.updateBuy);
 router.delete('/delete/:buy_id', authMiddleware.verifyToken, buyController.deleteBuy);
+router.get('/near-expiry', authMiddleware.verifyToken, buyController.getNearExpiryProducts);
+router.get('/all', authMiddleware.verifyToken, buyController.getAllBuys);
 
 module.exports = router;
