@@ -229,6 +229,7 @@ exports.getConsumedFoods = async (req, res) => {
       f.food_name, 
       mf.quantity, 
       DATE_FORMAT(m.meal_date, '%Y-%m-%d') AS consumed_date,
+      m.meal_cd,
       mf.calorie_total, 
       mf.carb_total, 
       mf.protein_total, 
