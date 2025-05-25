@@ -40,7 +40,13 @@ app.get('/', (req, res) => {
   res.send('Smart Kitchen Backend API');
 });
 
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// 기존
+// app.listen(PORT, () => {
+//   console.log(`Server running on http://localhost:${PORT}`);
+// });
+
+// 수정
+// 이렇게 하면 외부 기기(스마트폰 등)에서도 접근 가능해진다.
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
 });
